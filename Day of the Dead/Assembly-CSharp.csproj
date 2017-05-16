@@ -46,6 +46,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\Scripts\Controllers\InputController.cs" />
+     <Compile Include="Assets\Scripts\Controllers\SpriteController.cs" />
      <Compile Include="Assets\Scripts\Controllers\WorldController.cs" />
      <Compile Include="Assets\Scripts\Models\Character.cs" />
      <Compile Include="Assets\Scripts\Models\Tile.cs" />

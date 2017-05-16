@@ -2,7 +2,7 @@ Day of the Dead:
 
 -Gameplay
 	-Player 1 is the "dead"
-	-Player 2 is the gaurd
+	-Player 2 is the guard
 	-AI is the people.
 
 	-Player 1's goal is to infect as many people as possible without getting caught.
