@@ -1,0 +1,45 @@
+Day of the Dead:
+
+-Gameplay
+	-Player 1 is the "dead"
+	-Player 2 is the gaurd
+	-AI is the people.
+
+	-Player 1's goal is to infect as many people as possible without getting caught.
+		-This is done by getting close to an AI and activating the infection.
+		-The player will walk around, and repeat the following.
+		-The "dead" can pick up vairying power-ups to aid their game.
+			-The player can hold only one power-up.
+			-*Everytime the player picks up a new power-up replace the original one.*
+		-For each person the player infects, add more to the score.
+
+
+
+	-Player 2's goal is to catch the "dead" with the less amount of mistakes.
+		-This is done by clicking on the player.
+		-The player has a limited amount of bullets until they can't shoot no more.
+		-The player can shoot the power-ups but at the risk of a bullet.
+
+	-AI walks around, moving to a random next available set of tiles.
+		-Once the Ai is infected, act normal but give a time interval of 10-15 seconds and then die. 
+
+	-This is a two round game.
+		-The rounds finish when either the "dead" has infected more than %60 of the AI.
+		-Or-
+		-The gaurd has successfully shot the "dead".
+		-Once the first round has finished, save player 1s score and swap the roles of player 1 and 2.
+		-After the second round, compare the score results from both rounds.
+		-The player with the highest score wins.
+
+	
+-Power Ups
+	-Smoke Bomb
+		-Place a solid cloud of smoke where activated to disapate later on.
+
+	-Infect bomb
+		-Place a bomb which infects a smmall area of AI once detonated later.
+
+	-
+		
+
+	-
