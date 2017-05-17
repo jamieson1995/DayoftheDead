@@ -11,6 +11,12 @@ public class World {
 
 	public List<Character> m_allCharacters;
 
+	public static int m_maxNumberOfAI = 100;
+
+	public int m_currNumberOfAI = 100;
+
+	public float m_percOfAIInfected = 0.0f;
+
 	public int m_width;
 
 	public int m_height;
@@ -20,6 +26,20 @@ public class World {
 	public int m_mainBullets = 5;
 
 	public int m_healthBullets = 3;
+
+	public bool m_SniperCam;
+
+	public float m_powerUpMaxTimer = 5.0f;
+
+	public float m_powerUpCurrTimer = 0.0f;
+
+	public int m_powerUpNum = 0;
+
+	public int m_powerUpLevel = 0;
+
+	public bool m_powerUpActivatedThisFrame = false;
+
+	public bool m_powerUpCountingUp = false;
 
 	Action<Character> cbCharacterCreated;
 
@@ -62,13 +82,12 @@ public class World {
 
 	}
 
-
 	/// The given tile is the very bottom left of the charcater.
 	public void SpawnNPC ( )
 	{
 
 		int randX = UnityEngine.Random.Range ( 0, m_width );
-		int randY = UnityEngine.Random.Range ( m_graveyardHeight, m_height );
+		int randY = UnityEngine.Random.Range ( m_graveyardHeight, m_height - Character.m_height);
 
 		Character c = new Character ( GetTileAt ( randX, randY ) );
 
@@ -82,6 +101,24 @@ public class World {
 
 	public void Update ( float _deltaTime )
 	{
+		if ( m_powerUpActivatedThisFrame )
+		{
+			m_powerUpActivatedThisFrame = false;
+			m_powerUpCountingUp = true;
+		}
+
+		if ( m_powerUpCountingUp )
+		{
+			if ( m_powerUpCurrTimer >= m_powerUpMaxTimer )
+			{
+				Debug.Log ( "Power Up goes off or stops!" );
+			}
+			else
+			{
+				m_powerUpCurrTimer += _deltaTime;
+			}
+		}
+
 		foreach ( Character c in m_allCharacters )
 		{
 			c.Update ( _deltaTime );
@@ -92,6 +129,7 @@ public class World {
 	{
 		if ( _bullet == 1 )
 		{
+			//SwitchSniperCameraMode(1);
 			if ( m_mainBullets <= 0 )
 			{
 				return;
@@ -118,6 +156,7 @@ public class World {
 		}
 		else if ( _bullet == 2 )
 		{	
+			SwitchSniperCameraMode(2);
 			if ( m_healthBullets <= 0 )
 			{
 				return;
@@ -144,6 +183,22 @@ public class World {
 		}
 
 		return;
+	}
+
+	public void SwitchSniperCameraMode ( int _type )
+	{
+		if ( _type == 1 )
+		{
+			WorldController.instance.m_mainCamera.gameObject.SetActive ( true );
+			WorldController.instance.m_sniperCamera.gameObject.SetActive ( false );
+			m_SniperCam = false;
+		}
+		else
+		{
+			WorldController.instance.m_mainCamera.gameObject.SetActive ( false );
+			WorldController.instance.m_sniperCamera.gameObject.SetActive ( true );
+			m_SniperCam = true;
+		}
 	}
 
 	public Tile GetTileAt ( int _x, int _y )

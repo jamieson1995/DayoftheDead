@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class InputController : MonoBehaviour {
 
-	Vector3 m_mousePos;
+	public Vector3 m_mousePos;
 
 	Tile m_tileUnderMouse;
 
@@ -26,11 +26,34 @@ public class InputController : MonoBehaviour {
 			m_world = WorldController.instance.m_world;
 		}
 
-		m_mousePos = Camera.main.ScreenToWorldPoint ( Input.mousePosition );
+		m_mousePos = WorldController.instance.m_mainCamera.ScreenToWorldPoint ( Input.mousePosition );
 
 		m_tileUnderMouse = GetTileUnderMouse ();
 
 		ProcessKeyboardInput ();
+
+		if ( m_world.m_SniperCam )
+		{
+			CameraFollowMouse ();
+
+			Cursor.visible = false;
+			GameObject crossHair;
+			if ( GameObject.Find ( "Cross Hair" ) == null )
+			{
+				crossHair = new GameObject ();
+				crossHair.name = "Cross Hair";
+				SpriteRenderer sr = crossHair.AddComponent<SpriteRenderer> ();
+				sr.sprite = WorldController.instance.m_crossHairSp;
+			}
+			else
+			{
+				crossHair = GameObject.Find ( "Cross Hair" );
+
+			}
+
+			crossHair.transform.position = new Vector3 ( WorldController.instance.IP.m_mousePos.x, WorldController.instance.IP.m_mousePos.y, crossHair.transform.position.z );
+
+		}
 
 		if ( m_tileUnderMouse == null )
 		{
@@ -73,11 +96,21 @@ public class InputController : MonoBehaviour {
 		}
 		if ( Input.GetKey ( KeyCode.Space ) )
 		{
-			if ( m_world.m_player1.m_canBite )
-			{
-				m_world.m_player1.Bite();
-			}
+			//if ( m_world.m_player1.m_canBite )
+			//{
+			//	m_world.m_player1.Bite();
+			//}
+			m_world.SwitchSniperCameraMode ( 2 );
 		}
+		if ( Input.GetKey ( KeyCode.LeftShift ) )
+		{
+			m_world.m_powerUpActivatedThisFrame = true;
+		}
+	}
+
+	void CameraFollowMouse()
+	{
+		WorldController.instance.m_sniperCamera.transform.position = m_mousePos;
 	}
 
 	public Tile GetTileUnderMouse ()

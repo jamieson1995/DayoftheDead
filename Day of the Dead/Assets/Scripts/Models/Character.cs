@@ -11,7 +11,7 @@ public class Character {
 
 	public Tile m_toTile;
 
-	public static int m_width = 64;
+	public static int m_width = 32;
 
 	public static int m_height = 64;
 
@@ -261,7 +261,7 @@ public class Character {
 
 		m_movementCooldown = UnityEngine.Random.Range ( 2.0f, 5.0f );
 
-		int randX = UnityEngine.Random.Range ( 0, m_world.m_width - m_width );
+		int randX = UnityEngine.Random.Range ( 5, m_world.m_width - m_width );
 		int randY = UnityEngine.Random.Range ( m_world.m_graveyardHeight, m_world.m_height - m_height);
 
 		m_toTile = m_world.GetTileAt(randX, randY);
@@ -279,7 +279,7 @@ public class Character {
 		m_currX = m_originalTile.X;
 		m_currY = m_originalTile.Y;
 		m_movementPercentage = 0;
-		m_toTile = m_world.GetTileAt ( UnityEngine.Random.Range ( 0, m_world.m_width - m_width ), 0 );
+		m_toTile = m_world.GetTileAt ( UnityEngine.Random.Range ( 5, m_world.m_width - m_width ), 0 );
 	}
 
 	public bool MoveEast ( float amount )
