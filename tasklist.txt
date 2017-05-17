@@ -1,0 +1,21 @@
+TO DO
+PRIORITY 
+
+Jacek:
+
+1. Finish Background
+2. Scenes (menu/options/victory)
+3. Audio
+
+
+Ryan:
+
+1. Powerup sprites
+2. UI graphics
+3. Extra Characters
+
+James:
+
+1. Powerups
+2. UI coding
+3. Score/Time system
