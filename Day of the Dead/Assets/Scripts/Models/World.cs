@@ -7,11 +7,19 @@ public class World {
 
 	public Tile[,] m_tiles;
 
+	public Character m_player1;
+
 	public List<Character> m_allCharacters;
 
 	public int m_width;
 
 	public int m_height;
+
+	public int m_graveyardHeight = 50;
+
+	public int m_mainBullets = 5;
+
+	public int m_healthBullets = 3;
 
 	Action<Character> cbCharacterCreated;
 
@@ -33,12 +41,38 @@ public class World {
 		}
 	}
 
-	/// The given tile is the very bottom left of the charcater.
-	public void SpawnCharcater ( Tile _tile )
+	public void SpawnPlayer1 ( )
 	{
-		Character c = new Character ( _tile );
 
-		m_allCharacters.Add(c);
+		int randX = UnityEngine.Random.Range ( 0, m_width - Character.m_width);
+		int randY = UnityEngine.Random.Range ( m_graveyardHeight, m_height - Character.m_height);
+
+		Character p = new Character ( GetTileAt ( randX, randY ) );
+
+		m_player1 = p;
+
+		p.player = true;
+
+		m_allCharacters.Add(p);
+
+		if ( cbCharacterCreated != null )
+		{
+			cbCharacterCreated ( p );
+		}
+
+	}
+
+
+	/// The given tile is the very bottom left of the charcater.
+	public void SpawnNPC ( )
+	{
+
+		int randX = UnityEngine.Random.Range ( 0, m_width );
+		int randY = UnityEngine.Random.Range ( m_graveyardHeight, m_height );
+
+		Character c = new Character ( GetTileAt ( randX, randY ) );
+
+		m_allCharacters.Add ( c );
 
 		if ( cbCharacterCreated != null )
 		{
@@ -46,10 +80,76 @@ public class World {
 		}
 	}
 
+	public void Update ( float _deltaTime )
+	{
+		foreach ( Character c in m_allCharacters )
+		{
+			c.Update ( _deltaTime );
+		}
+	}
+
+	public void SniperShot ( int _bullet, Tile _tile )
+	{
+		if ( _bullet == 1 )
+		{
+			if ( m_mainBullets <= 0 )
+			{
+				return;
+			}
+			m_mainBullets--;
+			foreach ( Character c in m_allCharacters.ToArray() )
+			{
+				if ( c.IsTileUnderCharacter ( _tile ) )
+				{
+					if ( c.player )
+					{
+						Debug.Log ( "player was shot with left button." );	
+					}
+					else if ( c.infected )
+					{
+						Debug.Log ( "Infected was shot with left button." );
+					}
+					else
+					{
+						Debug.Log ( "Human was shot with left button." );
+					}
+				}
+			}
+		}
+		else if ( _bullet == 2 )
+		{	
+			if ( m_healthBullets <= 0 )
+			{
+				return;
+			}
+			m_healthBullets--;
+			foreach ( Character c in m_allCharacters.ToArray() )
+			{
+				if ( c.IsTileUnderCharacter ( _tile ) )
+				{
+					if ( c.player )
+					{
+						Debug.Log ( "player was shot with right button." );	
+					}
+					else if ( c.infected )
+					{
+						Debug.Log ( "Infected was shot with right button." );
+					}
+					else
+					{
+						Debug.Log ( "Human was shot with right button." );
+					}
+				}
+			}
+		}
+
+		return;
+	}
+
 	public Tile GetTileAt ( int _x, int _y )
 	{
 
-		if ( _x > m_width || _x < 0 || _y > m_height || _y < 0 )
+		if ( _x >= m_width || _x < 0 || _y >= m_height || _y < 0 )
 		{
 			return null;
 		}

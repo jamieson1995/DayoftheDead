@@ -22,11 +22,15 @@ public class SpriteController : MonoBehaviour {
 	void OnCharacterCreated ( Character _char )
 	{
 		GameObject char_GO = new GameObject ();
-
 		m_characterGameObjectMap.Add ( _char, char_GO );
 		char_GO.transform.position = new Vector3 ( _char.X, _char.Y, 0 );
-		SpriteRenderer sr = char_GO.AddComponent<SpriteRenderer>();
-		sr.sprite = m_sprites[0];
+		SpriteRenderer sr = char_GO.AddComponent<SpriteRenderer> ();
+		sr.sprite = m_sprites [ 0 ];
+		char_GO.layer = 1;
+		if ( _char.player )
+		{
+			sr.sprite = m_sprites [ 1 ];
+		}
 
 		_char.RegisterOnMovedCallback( OnCharacterMoved );
 
@@ -44,5 +48,10 @@ public class SpriteController : MonoBehaviour {
 
 		char_GO.transform.position = new Vector3 ( _char.X, _char.Y, 0 );
 
+	}
+
+	public void ChangeCharacterSprite(Character _char)
+	{
+		m_characterGameObjectMap[_char].GetComponent<SpriteRenderer>().sprite = m_sprites [ 1 ];
 	}
 }

@@ -10,9 +10,11 @@ public class WorldController : MonoBehaviour {
 
 	public Sprite m_tileSprite;
 
-	public SpriteController SP;
+	public SpriteController SC;
 
 	public GameObject Button;
+
+	public Texture2D m_crossHair;
 
 	void Awake ()
 	{
@@ -27,31 +29,66 @@ public class WorldController : MonoBehaviour {
 
 	}
 
+	void Update ()
+	{
+		if ( m_world == null )
+		{
+			return;
+		}
+
+		m_world.Update ( Time.deltaTime );
+	}
+
 	public void CreateWorld ()
 	{
 
-		Button.SetActive(false);
+		Button.SetActive ( false );
 
-		m_world = new World ( 810, 456 );
+		Cursor.SetCursor(m_crossHair, Vector2.zero, CursorMode.Auto);
+
+		m_world = new World ( 810, 400 );
+
+		Camera.main.transform.position = new Vector3 ( m_world.m_width / 2, m_world.m_height / 2 + (m_world.m_height - 386) , Camera.main.transform.position.z );
+
+		SC.SetUpWorld ();
 
 		for ( int x = 0; x < m_world.m_width; x++ )
 		{
-			for ( int y = 0; y < m_world.m_height; y++ )
-			{
-				//GameObject tileGO = new GameObject ();
-				//tileGO.transform.position = new Vector3 ( x, y, 0 );
-				//SpriteRenderer sr = tileGO.AddComponent<SpriteRenderer> ();
-				//sr.sprite = m_tileSprite;
-			}
+			GameObject tile_go1 = new GameObject ();
+			tile_go1.transform.position = new Vector3 ( x, 0, 0 );
+			SpriteRenderer sr1 = tile_go1.AddComponent<SpriteRenderer> ();
+			sr1.sprite = m_tileSprite;
+			tile_go1.layer = 10;
+
+			GameObject tile_go2 = new GameObject ();
+			tile_go2.transform.position = new Vector3 ( x, m_world.m_height, 0 );
+			SpriteRenderer sr2 = tile_go2.AddComponent<SpriteRenderer> ();
+			sr2.sprite = m_tileSprite;
+			tile_go2.layer = 10;
 		}
 
-		Debug.Log(m_world.m_width/2 + "," + m_world.m_height/2);
+		for ( int y = 0; y < m_world.m_height; y++ )
+		{
+			GameObject tile_go1 = new GameObject ();
+			tile_go1.transform.position = new Vector3 ( 0, y, 0 );
+			SpriteRenderer sr1 = tile_go1.AddComponent<SpriteRenderer> ();
+			sr1.sprite = m_tileSprite;
+			tile_go1.layer = 10;
 
-		Camera.main.transform.position = new Vector3(m_world.m_width/2, m_world.m_height/2, Camera.main.transform.position.z);
+			GameObject tile_go2 = new GameObject ();
+			tile_go2.transform.position = new Vector3 ( m_world.m_width, y, 0 );
+			SpriteRenderer sr2 = tile_go2.AddComponent<SpriteRenderer> ();
+			sr2.sprite = m_tileSprite;
+			tile_go2.layer = 10;
+		}
 
-		SP.SetUpWorld();
+		m_world.SpawnPlayer1 ();
 
-		m_world.SpawnCharcater ( m_world.GetTileAt ( m_world.m_width/2, m_world.m_height/2 ) );
+		for ( int i = 0; i < 5; i++ )
+		{
+			m_world.SpawnNPC ();
+		}
+
 	}
 
 }

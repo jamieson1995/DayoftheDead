@@ -4,13 +4,13 @@ using UnityEngine;
 
 public class Tile {
 
-	public int x;
+	public int X;
 
-	public int y;
+	public int Y;
 
 	public Tile(World m_world, int _x, int _y)
 	{
-		x = _x;
-		y = _y;
+		X = _x;
+		Y = _y;
 	}
 }
