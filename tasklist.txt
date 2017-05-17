@@ -10,7 +10,6 @@ Jacek:
 
 Ryan:
 
-1. Powerup sprites
 2. UI graphics
 3. Extra Characters
 
