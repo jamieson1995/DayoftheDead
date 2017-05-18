@@ -15,15 +15,15 @@ public class Character {
 
 	public static int m_height = 64;
 
-	public bool player = false;
+	public bool isPlayer = false;
 
-	public bool infected = false;
+	public bool isInfected = false;
 
 	public float m_movementPercentage = 0.0f;
 
-	public float m_playerSpeed = 2.0f;
+	public int m_playerSpeed = 1;
 
-	public float m_speed = 1.0f;	
+	public float m_speed = 1f;	
 
 	public float m_movementCooldown;
 
@@ -39,7 +39,15 @@ public class Character {
 
 	public float m_biteMaxTimer = 3.0f;
 
-	public float m_biteCurrTimer;
+	public float m_biteCurrTimer = 3.0f;
+
+	public bool isTurning = false;
+
+	public float m_turningTimerMax = 5.0f;
+
+	public float m_turningTimerCurr = 0.0f;
+
+	public bool m_increasedScore = false;
 
 	public float X
 	{
@@ -69,7 +77,7 @@ public class Character {
 		m_currX = m_originalTile.X;
 		m_currY = m_originalTile.Y;
 		m_movementCooldown = UnityEngine.Random.Range ( 0.0f, 5.0f );
-		if ( player )
+		if ( isPlayer )
 		{
 			m_biteCurrTimer = m_biteMaxTimer;
 		}
@@ -113,19 +121,31 @@ public class Character {
 	{
 		Update_Movement ( _deltaTime );
 
-		if ( player == false )
+		if ( isPlayer == false )
 		{
-			if ( infected )
+			if ( isInfected )
 			{
 				Update_AIInfected ( _deltaTime );
 			}
 			else
 			{
 				Update_AIAlive ( _deltaTime );
+
+				if ( isTurning )
+				{
+					if ( m_turningTimerCurr >= m_turningTimerMax )
+					{
+						isInfected = true;
+						WorldController.instance.SC.ChangeCharacterSprite ( this );
+						return;
+					}
+
+					m_turningTimerCurr += _deltaTime;
+				}
 			}
 		}
 
-		if ( player )
+		if ( isPlayer )
 		{
 			if ( m_biteCurrTimer >= m_biteMaxTimer )
 			{
@@ -146,7 +166,7 @@ public class Character {
 
 		foreach ( Character c in m_world.m_allCharacters.ToArray() )
 		{
-			if ( c.player || c.infected )
+			if ( c.isPlayer || c.isInfected )
 			{
 				continue;
 			}
@@ -155,17 +175,14 @@ public class Character {
 			{
 				if ( c.IsTileUnderCharacter ( m_world.GetTileAt ( x, m_currTile.Y ) ) )
 				{
-					c.infected = true;
+					c.isTurning = true;
 					killedThisFrame = true;
-					WorldController.instance.SC.ChangeCharacterSprite ( c );
 					break;
 				}
 
 				if ( c.IsTileUnderCharacter ( m_world.GetTileAt ( x, m_currTile.Y + m_height ) ) )
 				{
-					c.infected = true;
-					killedThisFrame = true;
-					WorldController.instance.SC.ChangeCharacterSprite ( c );
+					c.isTurning = true;
 					break;
 				}
 			}
@@ -174,17 +191,15 @@ public class Character {
 			{
 				if ( c.IsTileUnderCharacter ( m_world.GetTileAt ( m_currTile.X, y ) ) )
 				{
-					c.infected = true;
+					c.isTurning = true;
 					killedThisFrame = true;
-					WorldController.instance.SC.ChangeCharacterSprite ( c );
 					break;
 				}
 
 				if ( c.IsTileUnderCharacter ( m_world.GetTileAt ( m_currTile.X + m_width, y ) ) )
 				{
-					c.infected = true;
+					c.isTurning = true;
 					killedThisFrame = true;
-					WorldController.instance.SC.ChangeCharacterSprite ( c );
 					break;
 				}
 			}
@@ -223,7 +238,7 @@ public class Character {
 		
 		float distThisFrame;
 
-		if ( player )
+		if ( isPlayer )
 		{
 			distThisFrame = 100 * _deltaTime;
 		}
@@ -280,6 +295,57 @@ public class Character {
 		MoveSomewhere();
 	}
 
+	public void Update_AIInfected ( float _deltaTime )
+	{
+		//Go to graveyard
+		if ( m_toTile.Y == 0 )
+		{
+			if ( m_currTile.Y == 0 )
+			{
+				if ( m_increasedScore == false )
+				{
+					WorldController.instance.UIC.PlayerScoreChange ( m_world.m_round, World.ZombieBiteScore );
+					GameObject.Destroy ( WorldController.instance.SC.m_characterGameObjectMap [ this ] );
+					m_world.m_allCharacters.Remove ( this );
+					m_increasedScore = true;
+				}
+			}
+			return;
+		}
+		m_originalTile = m_currTile;
+		m_toTile = m_currTile;
+		m_currX = m_originalTile.X;
+		m_currY = m_originalTile.Y;
+		m_movementPercentage = 0;
+		int randX = UnityEngine.Random.Range ( 0, 6 );
+		if ( randX == 0 )
+		{
+			m_toTile = m_world.GetTileAt ( 10, 0 );
+		}
+		else if ( randX == 1 )
+		{
+			m_toTile = m_world.GetTileAt ( 125, 0 );
+		}
+		else if ( randX == 2 )
+		{
+			m_toTile = m_world.GetTileAt ( 260, 0 );
+		}
+		else if ( randX == 3 )
+		{
+			m_toTile = m_world.GetTileAt ( 390, 0 );
+		}
+		else if ( randX == 4 )
+		{
+			m_toTile = m_world.GetTileAt ( 530, 0 );
+		}
+		else if ( randX == 5 )
+		{
+			m_toTile = m_world.GetTileAt ( 650, 0 );
+		}
+
+
+	}
+
 	public void MoveSomewhere()
 	{
 		int randX = UnityEngine.Random.Range ( 5, m_world.m_width - m_width );
@@ -288,24 +354,9 @@ public class Character {
 		m_toTile = m_world.GetTileAt(randX, randY);
 	}
 
-	public void Update_AIInfected ( float _deltaTime )
+	public bool MoveEast ( int amount )
 	{
-		//Go to graveyard
-		if ( m_toTile.Y == 0 )
-		{
-			return;
-		}
-		m_originalTile = m_currTile;
-		m_toTile = m_currTile;
-		m_currX = m_originalTile.X;
-		m_currY = m_originalTile.Y;
-		m_movementPercentage = 0;
-		m_toTile = m_world.GetTileAt ( UnityEngine.Random.Range ( 5, m_world.m_width - m_width ), 0 );
-	}
-
-	public bool MoveEast ( float amount )
-	{
-		if ( amount == m_speed )
+		if ( amount == m_playerSpeed )
 		{
 			return false;
 		}
@@ -327,9 +378,9 @@ public class Character {
 		return true;
 	}
 
-	public bool MoveWest ( float amount )
+	public bool MoveWest ( int amount )
 	{
-		if ( amount == m_speed )
+		if ( amount == m_playerSpeed )
 		{
 			return false;
 		}
@@ -346,9 +397,9 @@ public class Character {
 		return true;
 	}
 
-	public bool MoveNorth ( float amount )
+	public bool MoveNorth ( int amount )
 	{
-		if ( amount == m_speed )
+		if ( amount == m_playerSpeed )
 		{
 			return false;
 		}
@@ -370,9 +421,9 @@ public class Character {
 		return true;
 	}
 
-	public bool MoveSouth ( float amount )
+	public bool MoveSouth ( int amount )
 	{
-		if ( amount == m_speed )
+		if ( amount == m_playerSpeed )
 		{
 			return false;
 		}
@@ -413,7 +464,7 @@ public class Character {
 		m_world.m_partyTime = true;
 		foreach ( Character c in m_world.m_allCharacters.ToArray() )
 		{
-			if ( c.player == false )
+			if ( c.isPlayer == false )
 			{
 				c.m_originalTile = c.m_currTile;
 				c.m_toTile = c.m_currTile;
@@ -440,7 +491,7 @@ public class Character {
 
 		foreach ( Character c in m_world.m_allCharacters.ToArray() )
 		{
-			if ( c.player )
+			if ( c.isPlayer )
 			{
 				continue;
 			}
@@ -460,7 +511,7 @@ public class Character {
 
 			if ( bombHitThisCharacter )
 			{
-				c.infected = true;
+				c.isInfected = true;
 				WorldController.instance.SC.ChangeCharacterSprite(c);
 			}
 		}

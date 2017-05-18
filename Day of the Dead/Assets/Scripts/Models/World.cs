@@ -5,6 +5,8 @@ using System;
 
 public class World {
 
+	public static int ZombieBiteScore = 100;
+
 	public Tile[,] m_tiles;
 
 	public Character m_player1;
@@ -43,6 +45,18 @@ public class World {
 
 	public bool m_partyTime = false;
 
+	public int m_P1Score = 0;
+
+	public int m_P2Score = 0;
+
+	public int m_roundTimerMax = 180;
+
+	public int m_roundTimerCurr = 180;
+
+	public float m_secondTimerCurr = 0.0f;
+
+	public int m_round = 1;
+
 	Action<Character> cbCharacterCreated;
 
 	public World (int _width, int _height)
@@ -73,7 +87,7 @@ public class World {
 
 		m_player1 = p;
 
-		p.player = true;
+		p.isPlayer = true;
 
 		m_allCharacters.Add(p);
 
@@ -103,6 +117,17 @@ public class World {
 
 	public void Update ( float _deltaTime )
 	{
+
+		if ( m_secondTimerCurr >= 1.0f )
+		{
+			m_roundTimerCurr -= 1;
+			m_secondTimerCurr = 0;
+		}
+		else
+		{
+			m_secondTimerCurr+=_deltaTime;
+		}
+
 		if ( m_powerUpActivatedThisFrame )
 		{
 			m_powerUpActivatedThisFrame = false;
@@ -124,7 +149,14 @@ public class World {
 			}
 		}
 
-		foreach ( Character c in m_allCharacters )
+		List<Character> TempList = new List<Character>();
+
+		foreach ( Character c in m_allCharacters.ToArray() )
+		{
+			TempList.Add(c);
+		}
+
+		foreach ( Character c in TempList.ToArray() )
 		{
 			c.Update ( _deltaTime );
 		}
@@ -143,11 +175,11 @@ public class World {
 			{
 				if ( c.IsTileUnderCharacter ( _tile ) )
 				{
-					if ( c.player )
+					if ( c.isPlayer )
 					{
 						Debug.Log ( "player was shot with left button." );	
 					}
-					else if ( c.infected )
+					else if ( c.isInfected )
 					{
 						Debug.Log ( "Infected was shot with left button." );
 					}
@@ -170,11 +202,11 @@ public class World {
 			{
 				if ( c.IsTileUnderCharacter ( _tile ) )
 				{
-					if ( c.player )
+					if ( c.isPlayer )
 					{
 						Debug.Log ( "player was shot with right button." );	
 					}
-					else if ( c.infected )
+					else if ( c.isInfected )
 					{
 						Debug.Log ( "Infected was shot with right button." );
 					}

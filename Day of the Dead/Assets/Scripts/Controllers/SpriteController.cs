@@ -28,7 +28,7 @@ public class SpriteController : MonoBehaviour {
 		sr.sprite = m_sprites [ 0 ];
 		sr.sortingLayerName = "Characters";
 		char_GO.layer = 1;
-		if ( _char.player )
+		if ( _char.isPlayer )
 		{
 			sr.sprite = m_sprites [ 1 ];
 		}
