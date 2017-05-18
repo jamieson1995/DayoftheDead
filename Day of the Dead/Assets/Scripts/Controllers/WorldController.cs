@@ -14,6 +14,8 @@ public class WorldController : MonoBehaviour {
 
 	public InputController IC;
 
+	public UIController UIC;
+
 	public GameObject Button;
 
 	public Sprite m_crossHairSp;
@@ -21,6 +23,8 @@ public class WorldController : MonoBehaviour {
 	public GameObject m_smallCrosshair;
 
 	public GameObject m_background;
+
+	public GameObject m_foreground;
 
 	public Camera m_mainCamera;
 
@@ -69,6 +73,8 @@ public class WorldController : MonoBehaviour {
 		m_mainCamera.transform.position = new Vector3 ( m_world.m_width / 2, m_world.m_height / 2 + ( m_world.m_height - 386 ), Camera.main.transform.position.z );
 
 		m_background.transform.position = new Vector3 ( Camera.main.transform.position.x, Camera.main.transform.position.y, m_background.transform.position.z );
+
+		m_foreground.transform.position = new Vector3 ( m_background.transform.position.x - (int)(m_world.m_width/2), m_background.transform.position.y - (int)(m_world.m_height/2) - 28, m_foreground.transform.position.z );
 
 		SC.SetUpWorld ();
 

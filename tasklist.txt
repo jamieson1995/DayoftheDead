@@ -30,6 +30,5 @@ Ryan:
 
 James:
 
-1. Powerups
 2. UI coding
 3. Score/Time system
