@@ -7,12 +7,8 @@ Jacek:
 2. Scenes (menu/options/victory)
 3. Audio
 
-
-- zombie bite
-- smoke bomb
 - infection bomb
-- party music/sound
-- crowd sound
+- party sound
 - hit indicator (ow! civillian, zombie death, civillian dies)
 - background music
 - zoom sound
