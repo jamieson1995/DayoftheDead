@@ -46,6 +46,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\LogoScript.cs" />
+     <Compile Include="Assets\MenuAnim.cs" />
+     <Compile Include="Assets\MenuAnim2.cs" />
+     <Compile Include="Assets\SceneSwap.cs" />
      <Compile Include="Assets\Scripts\Controllers\InputController.cs" />
      <Compile Include="Assets\Scripts\Controllers\SoundManager.cs" />
      <Compile Include="Assets\Scripts\Controllers\SpriteController.cs" />

@@ -49,7 +49,7 @@ public class World {
 
 	public float m_powerUpCurrTimer = 0.0f;
 
-	public int m_powerUpNum = 3;
+	public int m_powerUpNum = 0	;
 
 	public int m_powerUpLevel = 0;
 
@@ -71,7 +71,7 @@ public class World {
 
 	public int m_round = 1;
 
-	public float m_AmmoCrateTimerMax = 2.0f;
+	public float m_AmmoCrateTimerMax = 10.0f;
 
 	public float m_AmmoCrateTimerCurr = 0.0f;
 

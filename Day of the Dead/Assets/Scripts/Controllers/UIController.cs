@@ -57,6 +57,20 @@ public class UIController : MonoBehaviour {
 
 	public GameObject[] Bullets;
 
+	public Text RoundText;
+
+	public Image P1ReadyGO;
+
+	public Image P2ReadyGO;
+
+	public Sprite P1Tick;
+
+	public Sprite P2Tick;
+
+	public Sprite P1Cross;
+
+	public Sprite P2Cross;
+
 	void Start ()
 	{
 		P1ScoreChangeGOOriginalPos = P1ScoreChangeGO.transform.position;
@@ -143,6 +157,27 @@ public class UIController : MonoBehaviour {
 		if ( WorldController.instance.m_world != null )
 		{
 			RoundTimerText.text = "Time: " + WorldController.instance.m_world.m_roundTimerCurr.ToString ();
+		}
+
+		if ( WorldController.instance.RoundStartMenu.activeSelf )
+		{
+			if ( WorldController.instance.P1Ready )
+			{
+				P1ReadyGO.sprite = P1Tick;
+			}
+			else
+			{
+				P1ReadyGO.sprite = P1Cross;
+			}
+
+			if ( WorldController.instance.P1Ready )
+			{
+				P2ReadyGO.sprite = P2Tick;
+			}
+			else
+			{
+				P2ReadyGO.sprite = P2Cross;
+			}
 		}
 
 		if ( P1MoveScoreChangeText )
@@ -307,5 +342,10 @@ public class UIController : MonoBehaviour {
 	public void GainBullet()
 	{
 		Bullets [ 0 ].SetActive ( true );
+	}
+
+	public void SetRoundUI()
+	{
+		RoundText.text = WorldController.instance.m_world.m_round.ToString();
 	}
 }

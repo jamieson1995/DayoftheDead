@@ -20,6 +20,19 @@ public class InputController : MonoBehaviour {
 
 	void Update ()
 	{
+		if ( WorldController.instance.RoundActive == false )
+		{
+			if ( Input.GetMouseButtonDown ( 0 ) )
+			{
+				WorldController.instance.P2Ready = true;
+			} 
+
+			if ( Input.GetKeyDown ( KeyCode.Space ) )
+			{
+				WorldController.instance.P1Ready = true;
+			}
+		}
+
 		if ( isReloading )
 		{
 			if ( m_SniperDelayCurr >= m_SniperDelayMax )
@@ -126,7 +139,7 @@ public class InputController : MonoBehaviour {
 		{
 			m_world.m_player1.MoveWest ( 0 );
 		}
-		if ( Input.GetKey ( KeyCode.Space ) ) //FIXME
+		if ( Input.GetKeyDown ( KeyCode.Space ) )
 		{
 			if ( m_world.m_player1.m_canBite )
 			{

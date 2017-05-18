@@ -38,6 +38,16 @@ public class WorldController : MonoBehaviour {
 
 	public GameObject m_cursor;
 
+	public bool P1Ready = false;
+
+	public bool P2Ready = false;
+
+	public bool RoundActive = false;
+
+	public GameObject RoundStartMenu;
+
+	public bool RoundEndedThisFrame = false;
+
 	void Awake ()
 	{
 		if ( instance == null )
@@ -53,6 +63,20 @@ public class WorldController : MonoBehaviour {
 
 	void Update ()
 	{
+		if ( RoundEndedThisFrame )
+		{
+
+		}
+
+		if ( P1Ready && P2Ready )
+		{
+			RoundActive = true;
+			RoundStartMenu.SetActive(false);
+			CreateWorld ();
+			P1Ready = false;
+			P2Ready = false;
+		}
+
 		if ( m_world == null )
 		{
 			return;
@@ -63,14 +87,28 @@ public class WorldController : MonoBehaviour {
 
 	public void CreateWorld ()
 	{
+		if ( m_world != null )
+		{
+			if ( m_world.m_allCharacters.Count > 0 )
+			{
+				foreach ( Character c in m_world.m_allCharacters.ToArray() )
+				{
+					GameObject.Destroy ( SC.m_characterGameObjectMap [ c ] );
+				}
+			}
+			m_world.m_allCharacters = new List<Character> ();
+			UIC.SetRoundUI();
+		}
+		else
+		{
+			m_world = new World ( 810, 400 );
+		}
 
-		SM.PlayCrowdSoundsAS();
+		SM.PlayCrowdSoundsAS ();
 
 		Button.SetActive ( false );
 
 		Cursor.visible = false;
-
-		m_world = new World ( 810, 400 );
 
 		m_mainCamera = Camera.main;
 
