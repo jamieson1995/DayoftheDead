@@ -68,7 +68,7 @@ public class Character {
 		m_originalTile = m_currTile = m_toTile = _tile;
 		m_currX = m_originalTile.X;
 		m_currY = m_originalTile.Y;
-		m_movementCooldown = UnityEngine.Random.Range ( 2.0f, 5.0f );
+		m_movementCooldown = UnityEngine.Random.Range ( 0.0f, 5.0f );
 		if ( player )
 		{
 			m_biteCurrTimer = m_biteMaxTimer;
@@ -156,7 +156,6 @@ public class Character {
 				if ( c.IsTileUnderCharacter ( m_world.GetTileAt ( x, m_currTile.Y ) ) )
 				{
 					c.infected = true;
-					Debug.Log ( "Player bit successfully" );
 					killedThisFrame = true;
 					WorldController.instance.SC.ChangeCharacterSprite ( c );
 					break;
@@ -165,7 +164,6 @@ public class Character {
 				if ( c.IsTileUnderCharacter ( m_world.GetTileAt ( x, m_currTile.Y + m_height ) ) )
 				{
 					c.infected = true;
-					Debug.Log ( "Player bit successfully" );
 					killedThisFrame = true;
 					WorldController.instance.SC.ChangeCharacterSprite ( c );
 					break;
@@ -177,7 +175,6 @@ public class Character {
 				if ( c.IsTileUnderCharacter ( m_world.GetTileAt ( m_currTile.X, y ) ) )
 				{
 					c.infected = true;
-					Debug.Log ( "Player bit successfully" );
 					killedThisFrame = true;
 					WorldController.instance.SC.ChangeCharacterSprite ( c );
 					break;
@@ -186,7 +183,6 @@ public class Character {
 				if ( c.IsTileUnderCharacter ( m_world.GetTileAt ( m_currTile.X + m_width, y ) ) )
 				{
 					c.infected = true;
-					Debug.Log ( "Player bit successfully" );
 					killedThisFrame = true;
 					WorldController.instance.SC.ChangeCharacterSprite ( c );
 					break;
@@ -195,11 +191,24 @@ public class Character {
 
 			if ( killedThisFrame )
 			{
+				m_world.m_powerUpLevel++;
+
+				if ( m_world.m_powerUpLevel >= 4 )
+				{
+					m_world.m_powerUpNum++;
+
+					m_world.m_powerUpLevel = 0;
+
+					if ( m_world.m_powerUpNum > 0 )
+					{
+						Debug.Log("Power-up Level - " + m_world.m_powerUpNum);
+					}
+				}
+	
 				break;
 			}
 		}
 
-		Debug.Log("Player bit");
 		m_biteCurrTimer = 0;
 		m_canBite = false;
 	}
@@ -259,8 +268,20 @@ public class Character {
 			return;
 		}
 
-		m_movementCooldown = UnityEngine.Random.Range ( 2.0f, 5.0f );
+		if ( m_world.m_partyTime == false )
+		{
+			m_movementCooldown = UnityEngine.Random.Range ( 2.0f, 5.0f );
+		}
+		else
+		{
+			m_movementCooldown = 0.0f;
+		}
 
+		MoveSomewhere();
+	}
+
+	public void MoveSomewhere()
+	{
 		int randX = UnityEngine.Random.Range ( 5, m_world.m_width - m_width );
 		int randY = UnityEngine.Random.Range ( m_world.m_graveyardHeight, m_world.m_height - m_height);
 
@@ -371,6 +392,92 @@ public class Character {
 		MoveSouth(amount + 1);
 
 		return true;
+	}
+
+	public void SmokeBomb ()
+	{
+		m_world.m_powerUpCountingUp = true;
+		WorldController.instance.Smoke.SetActive(true);
+		WorldController.instance.Smoke.transform.position = WorldController.instance.SC.m_characterGameObjectMap[this].transform.position;
+	}
+
+	public void Zoom()
+	{
+		m_world.m_powerUpCountingUp = true;
+		m_world.SwitchSniperCameraMode ( 2 );
+	}
+
+	public void Alarm ()
+	{
+		m_world.m_powerUpCountingUp = true;
+		m_world.m_partyTime = true;
+		foreach ( Character c in m_world.m_allCharacters.ToArray() )
+		{
+			if ( c.player == false )
+			{
+				c.m_originalTile = c.m_currTile;
+				c.m_toTile = c.m_currTile;
+				c.m_currX = c.m_originalTile.X;
+				c.m_currY = c.m_originalTile.Y;
+				c.m_movementPercentage = 0;
+				c.m_movementCooldown = 0.0f;
+				c.MoveSomewhere();
+			}
+		}
+	}
+
+	public void InfectionBombDropped ()
+	{
+		m_world.m_powerUpCountingUp = true;
+		WorldController.instance.Bomb.SetActive(true);
+		WorldController.instance.Bomb.transform.position = new Vector3 (WorldController.instance.IC.m_mousePos.x, WorldController.instance.IC.m_mousePos.y, WorldController.instance.Bomb.transform.position.z);
+	}
+
+	public void InfectionBombActivated ()
+	{
+		int width = 60;
+		int height = 60;
+
+		foreach ( Character c in m_world.m_allCharacters.ToArray() )
+		{
+			if ( c.player )
+			{
+				continue;
+			}
+
+			bool bombHitThisCharacter = false;
+
+			for ( int x = (int)( WorldController.instance.Bomb.transform.position.x - ( width / 2 ) ); x < (int)( WorldController.instance.Bomb.transform.position.x + ( width / 2 ) ); x++ )
+			{
+				for ( int y = (int)( WorldController.instance.Bomb.transform.position.y - ( height / 2 ) ); y < (int)( WorldController.instance.Bomb.transform.position.y + ( height / 2 ) ); y++ )
+				{
+					if ( c.IsTileUnderCharacter ( m_world.GetTileAt ( x, y ) ) )
+					{
+						bombHitThisCharacter = true;
+					}
+				}
+			}
+
+			if ( bombHitThisCharacter )
+			{
+				c.infected = true;
+				WorldController.instance.SC.ChangeCharacterSprite(c);
+			}
+		}
+	}
+
+	public void StopPowerUp ()
+	{
+		if ( WorldController.instance.Bomb.activeSelf == true )
+		{
+			InfectionBombActivated ();
+			WorldController.instance.Bomb.SetActive ( false );
+		}
+
+		m_world.m_partyTime = false;
+		WorldController.instance.m_smallCrosshair.SetActive(false);
+		WorldController.instance.Smoke.SetActive ( false );
+		m_world.SwitchSniperCameraMode ( 1 );
 	}
 
 	public void RegisterOnCreatedCallback( Action<Character> _callbackFunc)

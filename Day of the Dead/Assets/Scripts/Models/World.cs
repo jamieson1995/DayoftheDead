@@ -33,13 +33,15 @@ public class World {
 
 	public float m_powerUpCurrTimer = 0.0f;
 
-	public int m_powerUpNum = 0;
+	public int m_powerUpNum = 2;
 
 	public int m_powerUpLevel = 0;
 
 	public bool m_powerUpActivatedThisFrame = false;
 
 	public bool m_powerUpCountingUp = false;
+
+	public bool m_partyTime = false;
 
 	Action<Character> cbCharacterCreated;
 
@@ -112,6 +114,9 @@ public class World {
 			if ( m_powerUpCurrTimer >= m_powerUpMaxTimer )
 			{
 				Debug.Log ( "Power Up goes off or stops!" );
+				m_player1.StopPowerUp();
+				m_powerUpCurrTimer = 0;
+				m_powerUpCountingUp = false;
 			}
 			else
 			{
@@ -129,7 +134,6 @@ public class World {
 	{
 		if ( _bullet == 1 )
 		{
-			//SwitchSniperCameraMode(1);
 			if ( m_mainBullets <= 0 )
 			{
 				return;

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class SpriteController : MonoBehaviour {
 
-	Dictionary<Character, GameObject> m_characterGameObjectMap;
+	public Dictionary<Character, GameObject> m_characterGameObjectMap;
 
 	public Sprite[] m_sprites;
 
@@ -26,6 +26,7 @@ public class SpriteController : MonoBehaviour {
 		char_GO.transform.position = new Vector3 ( _char.X, _char.Y, 0 );
 		SpriteRenderer sr = char_GO.AddComponent<SpriteRenderer> ();
 		sr.sprite = m_sprites [ 0 ];
+		sr.sortingLayerName = "Characters";
 		char_GO.layer = 1;
 		if ( _char.player )
 		{
@@ -47,6 +48,8 @@ public class SpriteController : MonoBehaviour {
 		GameObject char_GO = m_characterGameObjectMap[_char];
 
 		char_GO.transform.position = new Vector3 ( _char.X, _char.Y, 0 );
+
+		char_GO.GetComponent<SpriteRenderer>().sortingOrder = (Mathf.FloorToInt(_char.Y) - WorldController.instance.m_world.m_height) * -1;
 
 	}
 

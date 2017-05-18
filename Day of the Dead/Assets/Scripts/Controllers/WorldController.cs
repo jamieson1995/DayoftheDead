@@ -12,21 +12,25 @@ public class WorldController : MonoBehaviour {
 
 	public SpriteController SC;
 
-	public InputController IP;
+	public InputController IC;
 
 	public GameObject Button;
 
-	public Texture2D m_crossHair;
-
 	public Sprite m_crossHairSp;
 
-	public GameObject m_background;
+	public GameObject m_smallCrosshair;
 
-	public Vector3 m_cameraOriginalPosition;
+	public GameObject m_background;
 
 	public Camera m_mainCamera;
 
 	public Camera m_sniperCamera;
+
+	public GameObject Smoke;
+
+	public GameObject Bomb;
+
+	public GameObject m_cursor;
 
 	void Awake ()
 	{
@@ -56,7 +60,7 @@ public class WorldController : MonoBehaviour {
 
 		Button.SetActive ( false );
 
-		Cursor.SetCursor ( m_crossHair, Vector2.zero, CursorMode.Auto );
+		Cursor.visible = false;
 
 		m_world = new World ( 810, 400 );
 

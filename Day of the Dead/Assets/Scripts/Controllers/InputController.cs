@@ -28,6 +28,8 @@ public class InputController : MonoBehaviour {
 
 		m_mousePos = WorldController.instance.m_mainCamera.ScreenToWorldPoint ( Input.mousePosition );
 
+		WorldController.instance.m_cursor.transform.position = new Vector3 ( m_mousePos.x, m_mousePos.y, WorldController.instance.m_cursor.transform.position.z );
+
 		m_tileUnderMouse = GetTileUnderMouse ();
 
 		ProcessKeyboardInput ();
@@ -36,23 +38,21 @@ public class InputController : MonoBehaviour {
 		{
 			CameraFollowMouse ();
 
-			Cursor.visible = false;
-			GameObject crossHair;
-			if ( GameObject.Find ( "Cross Hair" ) == null )
+			WorldController.instance.m_cursor.SetActive ( false );
+
+			GameObject crossHair = WorldController.instance.m_smallCrosshair;
+
+			crossHair.SetActive ( true );
+
+			crossHair.transform.position = new Vector3 ( WorldController.instance.IC.m_mousePos.x, WorldController.instance.IC.m_mousePos.y, crossHair.transform.position.z );
+
+		}
+		else
+		{
+			if ( WorldController.instance.m_cursor.activeSelf == false )
 			{
-				crossHair = new GameObject ();
-				crossHair.name = "Cross Hair";
-				SpriteRenderer sr = crossHair.AddComponent<SpriteRenderer> ();
-				sr.sprite = WorldController.instance.m_crossHairSp;
+				WorldController.instance.m_cursor.SetActive(true);
 			}
-			else
-			{
-				crossHair = GameObject.Find ( "Cross Hair" );
-
-			}
-
-			crossHair.transform.position = new Vector3 ( WorldController.instance.IP.m_mousePos.x, WorldController.instance.IP.m_mousePos.y, crossHair.transform.position.z );
-
 		}
 
 		if ( m_tileUnderMouse == null )
@@ -94,17 +94,44 @@ public class InputController : MonoBehaviour {
 		{
 			m_world.m_player1.MoveWest ( 0 );
 		}
-		if ( Input.GetKey ( KeyCode.Space ) )
+		if ( Input.GetKey ( KeyCode.Space ) ) //FIXME
 		{
-			//if ( m_world.m_player1.m_canBite )
-			//{
-			//	m_world.m_player1.Bite();
-			//}
-			m_world.SwitchSniperCameraMode ( 2 );
+			if ( m_world.m_player1.m_canBite )
+			{
+				m_world.m_player1.Bite ();
+			}
 		}
 		if ( Input.GetKey ( KeyCode.LeftShift ) )
 		{
 			m_world.m_powerUpActivatedThisFrame = true;
+			if ( m_world.m_powerUpNum > 0 )
+			{
+				switch ( m_world.m_powerUpNum )
+				{
+
+					case 1:
+						m_world.m_player1.SmokeBomb ();
+						break;
+
+					case 2:
+						m_world.m_player1.Zoom ();
+						break;
+
+					case 3:
+						m_world.m_player1.Alarm ();
+						break;
+
+					case 4:
+						m_world.m_player1.InfectionBombDropped ();
+						break;
+
+				}
+				m_world.m_powerUpNum = 0;
+			}
+			else
+			{
+				Debug.Log("No power-up to activate!");
+			}
 		}
 	}
 
