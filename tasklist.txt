@@ -8,8 +8,7 @@ Jacek:
 3. Audio
 
 - infection bomb
-- party sound
-- hit indicator (ow! civillian, zombie death, civillian dies)
+- hit indicator (ow! civillian, civillian dies)
 - background music
 - zoom sound
 
