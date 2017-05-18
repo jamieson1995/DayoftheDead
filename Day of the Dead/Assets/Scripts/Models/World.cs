@@ -7,6 +7,20 @@ public class World {
 
 	public static int ZombieBiteScore = 100;
 
+	public static int SniperHealScore = 100;
+
+	public static int SniperZombieKill = 1000;
+
+	public static int SniperHealMissScore = -100;
+
+	public static int SniperHealZombieScore = -100;
+
+	public static int SniperBulletMiss = -300;
+
+	public static int SniperInfectedKill = -50;
+
+	public static int SniperHumanHealMiss = -50;
+
 	public Tile[,] m_tiles;
 
 	public Character m_player1;
@@ -25,9 +39,9 @@ public class World {
 
 	public int m_graveyardHeight = 50;
 
-	public int m_mainBullets = 5;
+	public int m_mainBullets = 3;
 
-	public int m_healthBullets = 3;
+	public int m_healthBullets = 5;
 
 	public bool m_SniperCam;
 
@@ -35,7 +49,7 @@ public class World {
 
 	public float m_powerUpCurrTimer = 0.0f;
 
-	public int m_powerUpNum = 2;
+	public int m_powerUpNum = 3;
 
 	public int m_powerUpLevel = 0;
 
@@ -57,14 +71,22 @@ public class World {
 
 	public int m_round = 1;
 
+	public float m_AmmoCrateTimerMax = 2.0f;
+
+	public float m_AmmoCrateTimerCurr = 0.0f;
+
+	public bool m_ammoCrateSpawned = false;
+
+	public bool m_smokeActive = false;
+
 	Action<Character> cbCharacterCreated;
 
-	public World (int _width, int _height)
+	public World ( int _width, int _height )
 	{
 		m_width = _width;
 		m_height = _height;
 
-		m_allCharacters = new List<Character>();
+		m_allCharacters = new List<Character> ();
 
 		m_tiles = new Tile[m_width, m_height];
 
@@ -83,11 +105,9 @@ public class World {
 		int randX = UnityEngine.Random.Range ( 0, m_width - Character.m_width);
 		int randY = UnityEngine.Random.Range ( m_graveyardHeight, m_height - Character.m_height);
 
-		Character p = new Character ( GetTileAt ( randX, randY ) );
+		Character p = new Character ( GetTileAt ( randX, randY ), 1 );
 
 		m_player1 = p;
-
-		p.isPlayer = true;
 
 		m_allCharacters.Add(p);
 
@@ -102,10 +122,10 @@ public class World {
 	public void SpawnNPC ( )
 	{
 
-		int randX = UnityEngine.Random.Range ( 0, m_width );
+		int randX = UnityEngine.Random.Range ( 10, m_width - Character.m_width );
 		int randY = UnityEngine.Random.Range ( m_graveyardHeight, m_height - Character.m_height);
 
-		Character c = new Character ( GetTileAt ( randX, randY ) );
+		Character c = new Character ( GetTileAt ( randX, randY ), 2 );
 
 		m_allCharacters.Add ( c );
 
@@ -113,6 +133,24 @@ public class World {
 		{
 			cbCharacterCreated ( c );
 		}
+	}
+
+	/// The given tile is the very bottom left of the charcater.
+	public void SpawnAmmoCrate ( )
+	{
+
+		int randX = UnityEngine.Random.Range ( 10, m_width - 119 );
+		int randY = UnityEngine.Random.Range ( m_graveyardHeight, m_height - 63);
+
+		Character c = new Character ( GetTileAt ( randX, randY ), 3 );
+
+		m_allCharacters.Add ( c );
+
+		if ( cbCharacterCreated != null )
+		{
+			cbCharacterCreated ( c );
+		}
+	
 	}
 
 	public void Update ( float _deltaTime )
@@ -125,7 +163,23 @@ public class World {
 		}
 		else
 		{
-			m_secondTimerCurr+=_deltaTime;
+			m_secondTimerCurr += _deltaTime;
+		}
+
+		if ( m_smokeActive )
+		{
+			WorldController.instance.Smoke.GetComponent<SpriteRenderer> ().color = new Color ( WorldController.instance.Smoke.GetComponent<SpriteRenderer> ().color.r, WorldController.instance.Smoke.GetComponent<SpriteRenderer> ().color.g, WorldController.instance.Smoke.GetComponent<SpriteRenderer> ().color.b, WorldController.instance.Smoke.GetComponent<SpriteRenderer> ().color.a + _deltaTime );
+		}
+		else
+		{
+			if ( WorldController.instance.Smoke.GetComponent<SpriteRenderer> ().color.a != 0 )
+			{
+				WorldController.instance.Smoke.GetComponent<SpriteRenderer> ().color = new Color ( WorldController.instance.Smoke.GetComponent<SpriteRenderer> ().color.r, WorldController.instance.Smoke.GetComponent<SpriteRenderer> ().color.g, WorldController.instance.Smoke.GetComponent<SpriteRenderer> ().color.b, WorldController.instance.Smoke.GetComponent<SpriteRenderer> ().color.a - _deltaTime );
+			}
+			else if (WorldController.instance.Smoke.activeSelf == true)
+			{
+				WorldController.instance.Smoke.SetActive(false);
+			}
 		}
 
 		if ( m_powerUpActivatedThisFrame )
@@ -139,13 +193,29 @@ public class World {
 			if ( m_powerUpCurrTimer >= m_powerUpMaxTimer )
 			{
 				Debug.Log ( "Power Up goes off or stops!" );
-				m_player1.StopPowerUp();
+				m_player1.StopPowerUp ();
 				m_powerUpCurrTimer = 0;
 				m_powerUpCountingUp = false;
 			}
 			else
 			{
 				m_powerUpCurrTimer += _deltaTime;
+			}
+		}
+
+		if ( m_mainBullets == 0 )
+		{
+			if ( m_AmmoCrateTimerCurr >= m_AmmoCrateTimerMax )
+			{
+				if ( m_ammoCrateSpawned == false )
+				{
+					SpawnAmmoCrate();
+					m_ammoCrateSpawned = true;
+				}
+			}
+			else
+			{
+				m_AmmoCrateTimerCurr += Time.deltaTime;
 			}
 		}
 
@@ -168,9 +238,28 @@ public class World {
 		{
 			if ( m_mainBullets <= 0 )
 			{
+				//Check to see if ammo crate was shot.
+				foreach ( Character c in m_allCharacters.ToArray() )
+				{
+					if ( c.isAmmoCrate == false )
+					{
+						continue;
+					}
+					if ( c.IsTileUnderCharacter ( _tile ) )
+					{
+						//Ammo crate was shot
+						m_mainBullets++;
+						WorldController.instance.UIC.GainBullet();
+						GameObject.Destroy ( WorldController.instance.SC.m_characterGameObjectMap [ c ] );
+						m_ammoCrateSpawned = false;
+						m_AmmoCrateTimerCurr = 0.0f;
+					}
+			}
 				return;
 			}
+			WorldController.instance.SM.PlaySniperShotAS();
 			m_mainBullets--;
+			WorldController.instance.UIC.LoseBullet(1);
 			foreach ( Character c in m_allCharacters.ToArray() )
 			{
 				if ( c.IsTileUnderCharacter ( _tile ) )
@@ -178,42 +267,77 @@ public class World {
 					if ( c.isPlayer )
 					{
 						Debug.Log ( "player was shot with left button." );	
+						WorldController.instance.UIC.PlayerScoreChange ( 2, SniperZombieKill );
+						WorldController.instance.SM.PlayZombieDeathAS();
 					}
 					else if ( c.isInfected )
 					{
 						Debug.Log ( "Infected was shot with left button." );
+						WorldController.instance.UIC.PlayerScoreChange ( 2, SniperInfectedKill );
+						m_currNumberOfAI--;
+						GameObject.Destroy ( WorldController.instance.SC.m_characterGameObjectMap [ c ] );
+						m_allCharacters.Remove ( c );
 					}
 					else
 					{
 						Debug.Log ( "Human was shot with left button." );
+						WorldController.instance.UIC.PlayerScoreChange ( 2, SniperBulletMiss );
+						m_currNumberOfAI--;
+						GameObject.Destroy ( WorldController.instance.SC.m_characterGameObjectMap [ c ] );
+						m_allCharacters.Remove ( c );
 					}
 				}
 			}
 		}
 		else if ( _bullet == 2 )
 		{	
-			SwitchSniperCameraMode(2);
 			if ( m_healthBullets <= 0 )
 			{
 				return;
 			}
+			WorldController.instance.UIC.LoseBullet(2);
+			WorldController.instance.SM.PlaySniperShotAS();
 			m_healthBullets--;
+			bool infectedWasHit = false;
+			int numberOfHumansHit = 0;
 			foreach ( Character c in m_allCharacters.ToArray() )
 			{
 				if ( c.IsTileUnderCharacter ( _tile ) )
 				{
 					if ( c.isPlayer )
 					{
-						Debug.Log ( "player was shot with right button." );	
+						WorldController.instance.UIC.PlayerScoreChange ( 2, SniperHealZombieScore );
+
 					}
 					else if ( c.isInfected )
 					{
-						Debug.Log ( "Infected was shot with right button." );
+						infectedWasHit = true;
+						c.isInfected = false;
+						c.m_toTile = c.m_currTile;
+						c.m_originalTile = c.m_currTile;
+						c.m_movementPercentage = 0.0f;
+						c.wasShot = true;
 					}
 					else
 					{
-						Debug.Log ( "Human was shot with right button." );
+						numberOfHumansHit++;
+						c.wasShot = true;
+						m_currNumberOfAI--;
+						GameObject.Destroy ( WorldController.instance.SC.m_characterGameObjectMap [ c ] );
+						m_allCharacters.Remove ( c );
 					}
+				}
+			}
+
+			if ( infectedWasHit )
+			{
+				WorldController.instance.UIC.PlayerScoreChange ( 2, SniperHealScore );
+			}
+			else
+			{
+				for ( int i = 0; i < numberOfHumansHit; i++ )
+				{
+					WorldController.instance.UIC.PlayerScoreChange ( 2, SniperHumanHealMiss );
 				}
 			}
 		}

@@ -12,8 +12,26 @@ public class InputController : MonoBehaviour {
 
 	World m_world;
 
+	float m_SniperDelayMax = 3.2f;
+
+	public float m_SniperDelayCurr = 0.0f;
+
+	public bool isReloading = false;
+
 	void Update ()
 	{
+		if ( isReloading )
+		{
+			if ( m_SniperDelayCurr >= m_SniperDelayMax )
+			{
+				isReloading = false;
+				m_SniperDelayCurr = 0.0f;
+			}
+			else
+			{
+				m_SniperDelayCurr += Time.deltaTime;
+			}
+		}
 
 		ignoreMouse = false;
 
@@ -34,6 +52,15 @@ public class InputController : MonoBehaviour {
 
 		ProcessKeyboardInput ();
 
+		if ( m_mousePos.x > 600 && m_mousePos.y < 40 )
+		{
+			WorldController.instance.UIC.MoveBulletHolderOut = true;
+		}
+		else
+		{
+			WorldController.instance.UIC.MoveBulletHolderOut = false;
+		}
+
 		if ( m_world.m_SniperCam )
 		{
 			CameraFollowMouse ();
@@ -51,7 +78,7 @@ public class InputController : MonoBehaviour {
 		{
 			if ( WorldController.instance.m_cursor.activeSelf == false )
 			{
-				WorldController.instance.m_cursor.SetActive(true);
+				WorldController.instance.m_cursor.SetActive ( true );
 			}
 		}
 
@@ -65,14 +92,19 @@ public class InputController : MonoBehaviour {
 			return;
 		}
 
-		if ( Input.GetMouseButtonDown ( 0 ) )
+		if ( isReloading == false )
 		{
-			m_world.SniperShot ( 1, m_tileUnderMouse );
-		}
+			if ( Input.GetMouseButtonDown ( 0 ) )
+			{
+				m_world.SniperShot ( 1, m_tileUnderMouse );
+				isReloading = true;
+			}
 
-		if ( Input.GetMouseButtonDown ( 1 ) )
-		{
-			m_world.SniperShot ( 2, m_tileUnderMouse );
+			if ( Input.GetMouseButtonDown ( 1 ) )
+			{
+				m_world.SniperShot ( 2, m_tileUnderMouse );
+				isReloading = true;
+			}
 		}
 	}
 
@@ -127,9 +159,13 @@ public class InputController : MonoBehaviour {
 
 				}
 				m_world.m_powerUpNum = 0;
+				m_world.m_powerUpLevel = 0;
+				WorldController.instance.UIC.ChangePowerUpSprite(m_world.m_powerUpNum);
+				WorldController.instance.UIC.ChangePowerUpCoverSprite(m_world.m_powerUpLevel);
 			}
 			else
 			{
+				WorldController.instance.SC.ChangeMaskColour();
 				Debug.Log("No power-up to activate!");
 			}
 		}
