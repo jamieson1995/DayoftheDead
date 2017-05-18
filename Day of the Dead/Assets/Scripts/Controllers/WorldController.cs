@@ -16,6 +16,8 @@ public class WorldController : MonoBehaviour {
 
 	public UIController UIC;
 
+	public SoundManager SM;
+
 	public GameObject Button;
 
 	public Sprite m_crossHairSp;
@@ -62,6 +64,8 @@ public class WorldController : MonoBehaviour {
 	public void CreateWorld ()
 	{
 
+		SM.PlayCrowdSoundsAS();
+
 		Button.SetActive ( false );
 
 		Cursor.visible = false;
@@ -77,36 +81,6 @@ public class WorldController : MonoBehaviour {
 		m_foreground.transform.position = new Vector3 ( m_background.transform.position.x - (int)(m_world.m_width/2), m_background.transform.position.y - (int)(m_world.m_height/2) - 28, m_foreground.transform.position.z );
 
 		SC.SetUpWorld ();
-
-		for ( int x = 0; x < m_world.m_width; x++ )
-		{
-			//GameObject tile_go1 = new GameObject ();
-			//tile_go1.transform.position = new Vector3 ( x, 0, 0 );
-			//SpriteRenderer sr1 = tile_go1.AddComponent<SpriteRenderer> ();
-			//sr1.sprite = m_tileSprite;
-			//tile_go1.layer = 10;
-			//
-			//GameObject tile_go2 = new GameObject ();
-			//tile_go2.transform.position = new Vector3 ( x, m_world.m_height, 0 );
-			//SpriteRenderer sr2 = tile_go2.AddComponent<SpriteRenderer> ();
-			//sr2.sprite = m_tileSprite;
-			//tile_go2.layer = 10;
-		}
-
-		for ( int y = 0; y < m_world.m_height; y++ )
-		{
-			//GameObject tile_go1 = new GameObject ();
-			//tile_go1.transform.position = new Vector3 ( 0, y, 0 );
-			//SpriteRenderer sr1 = tile_go1.AddComponent<SpriteRenderer> ();
-			//sr1.sprite = m_tileSprite;
-			//tile_go1.layer = 10;
-			//
-			//GameObject tile_go2 = new GameObject ();
-			//tile_go2.transform.position = new Vector3 ( m_world.m_width, y, 0 );
-			//SpriteRenderer sr2 = tile_go2.AddComponent<SpriteRenderer> ();
-			//sr2.sprite = m_tileSprite;
-			//tile_go2.layer = 10;
-		}
 
 		m_world.SpawnPlayer1 ();
 

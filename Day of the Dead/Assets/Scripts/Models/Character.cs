@@ -19,6 +19,10 @@ public class Character {
 
 	public bool isInfected = false;
 
+	public bool wasShot = false;
+
+	public bool isAmmoCrate = false;
+
 	public float m_movementPercentage = 0.0f;
 
 	public int m_playerSpeed = 1;
@@ -49,6 +53,14 @@ public class Character {
 
 	public bool m_increasedScore = false;
 
+	public float m_stopMovingTimerMax = 5.0f;
+
+	public float m_stopMovingTimerCurr = 0.0f;
+
+	public bool m_stoppedMoving = false;
+
+	public bool m_changeMask = false;
+
 	public float X
 	{
 		get
@@ -70,16 +82,23 @@ public class Character {
 	Action<Character> cbCharacterCreated;
 	Action<Character> cbCharacterMoved;
 
-	public Character ( Tile _tile )
+	public Character ( Tile _tile, int _type )
 	{
 		m_world = WorldController.instance.m_world;
+
 		m_originalTile = m_currTile = m_toTile = _tile;
 		m_currX = m_originalTile.X;
 		m_currY = m_originalTile.Y;
 		m_movementCooldown = UnityEngine.Random.Range ( 0.0f, 5.0f );
-		if ( isPlayer )
+
+		if ( _type == 1 )
 		{
+			isPlayer = true;
 			m_biteCurrTimer = m_biteMaxTimer;
+		}
+		else if ( _type == 3 )
+		{
+			isAmmoCrate = true;
 		}
 	}
 
@@ -99,11 +118,24 @@ public class Character {
 			return false;
 		}
 
-		if ( _tile.X > m_currX && _tile.X < m_currX + m_width )
+		if ( isAmmoCrate == false )
 		{
-			if ( _tile.Y > m_currY && _tile.Y < m_currY + m_height )
+			if ( _tile.X > m_currX && _tile.X < m_currX + m_width )
 			{
-				return true;
+				if ( _tile.Y > m_currY && _tile.Y < m_currY + m_height )
+				{
+					return true;
+				}
+			}
+		}
+		else
+		{
+			if ( _tile.X > m_currX && _tile.X < m_currX + 119 )
+			{
+				if ( _tile.Y > m_currY && _tile.Y < m_currY + 63 )
+				{
+					return true;
+				}
 			}
 		}
 
@@ -119,6 +151,11 @@ public class Character {
 
 	public void Update ( float _deltaTime )
 	{
+		if ( isAmmoCrate )
+		{
+			return;
+		}
+
 		Update_Movement ( _deltaTime );
 
 		if ( isPlayer == false )
@@ -126,6 +163,10 @@ public class Character {
 			if ( isInfected )
 			{
 				Update_AIInfected ( _deltaTime );
+			}
+			else if ( wasShot )
+			{
+
 			}
 			else
 			{
@@ -136,7 +177,6 @@ public class Character {
 					if ( m_turningTimerCurr >= m_turningTimerMax )
 					{
 						isInfected = true;
-						WorldController.instance.SC.ChangeCharacterSprite ( this );
 						return;
 					}
 
@@ -144,8 +184,7 @@ public class Character {
 				}
 			}
 		}
-
-		if ( isPlayer )
+		else
 		{
 			if ( m_biteCurrTimer >= m_biteMaxTimer )
 			{
@@ -155,6 +194,17 @@ public class Character {
 			{
 				m_biteCurrTimer += _deltaTime;
 			}
+
+			if ( m_stoppedMoving && m_stopMovingTimerCurr < m_stopMovingTimerMax )
+			{
+				m_stopMovingTimerCurr += _deltaTime;
+			}
+
+			if (m_stopMovingTimerCurr >= m_stopMovingTimerMax)
+			{
+				m_stopMovingTimerCurr = m_stopMovingTimerMax;
+				m_changeMask = true;
+			}
 		}
 
 	}
@@ -163,6 +213,8 @@ public class Character {
 	{
 
 		bool killedThisFrame = false;
+
+		WorldController.instance.SM.PlayZombieBiteAS();
 
 		foreach ( Character c in m_world.m_allCharacters.ToArray() )
 		{
@@ -183,6 +235,7 @@ public class Character {
 				if ( c.IsTileUnderCharacter ( m_world.GetTileAt ( x, m_currTile.Y + m_height ) ) )
 				{
 					c.isTurning = true;
+					killedThisFrame = true;
 					break;
 				}
 			}
@@ -206,20 +259,6 @@ public class Character {
 
 			if ( killedThisFrame )
 			{
-				m_world.m_powerUpLevel++;
-
-				if ( m_world.m_powerUpLevel >= 4 )
-				{
-					m_world.m_powerUpNum++;
-
-					m_world.m_powerUpLevel = 0;
-
-					if ( m_world.m_powerUpNum > 0 )
-					{
-						Debug.Log("Power-up Level - " + m_world.m_powerUpNum);
-					}
-				}
-	
 				break;
 			}
 		}
@@ -250,6 +289,17 @@ public class Character {
 		float percThisFrame = distThisFrame / distToTravel;
 
 		m_movementPercentage += percThisFrame;
+		if ( isPlayer && distToTravel == 0 )
+		{
+			m_stoppedMoving = true;
+		}
+
+		if ( isPlayer && distToTravel != 0 )
+		{
+			m_stoppedMoving = false;
+			m_stopMovingTimerCurr = 0.0f;
+			m_changeMask = false;
+		}
 
 		if ( GetTileUnderCharacter () != m_currTile )
 		{
@@ -305,9 +355,33 @@ public class Character {
 				if ( m_increasedScore == false )
 				{
 					WorldController.instance.UIC.PlayerScoreChange ( m_world.m_round, World.ZombieBiteScore );
+					m_world.m_currNumberOfAI--;
 					GameObject.Destroy ( WorldController.instance.SC.m_characterGameObjectMap [ this ] );
 					m_world.m_allCharacters.Remove ( this );
 					m_increasedScore = true;
+
+					if ( m_world.m_powerUpNum < 4 )
+					{
+						m_world.m_powerUpLevel++;
+
+						WorldController.instance.UIC.ChangePowerUpCoverSprite ( m_world.m_powerUpLevel );
+
+						if ( m_world.m_powerUpLevel >= 4 )
+						{
+							m_world.m_powerUpNum++;
+
+							m_world.m_powerUpLevel = 0;
+
+							WorldController.instance.UIC.ChangePowerUpSprite ( m_world.m_powerUpNum );
+
+							WorldController.instance.UIC.ChangePowerUpCoverSprite ( m_world.m_powerUpLevel );
+
+							if ( m_world.m_powerUpNum > 0 )
+							{
+								Debug.Log ( "Power-up Level - " + m_world.m_powerUpNum );
+							}
+						}
+					}
 				}
 			}
 			return;
@@ -344,6 +418,20 @@ public class Character {
 		}
 
 
+	}
+
+	public void Update_AIShot ( float _deltaTime )
+	{
+		if ( m_toTile.X < m_world.m_width )
+		{
+			m_toTile = m_world.GetTileAt ( m_world.m_width, m_currTile.Y ); 
+		}
+		else
+		{
+			m_world.m_currNumberOfAI--;
+			GameObject.Destroy ( WorldController.instance.SC.m_characterGameObjectMap [ this ] );
+			m_world.m_allCharacters.Remove ( this );
+		}
 	}
 
 	public void MoveSomewhere()
@@ -449,17 +537,22 @@ public class Character {
 	{
 		m_world.m_powerUpCountingUp = true;
 		WorldController.instance.Smoke.SetActive(true);
+		WorldController.instance.Smoke.GetComponent<SpriteRenderer>().color = new Color(WorldController.instance.Smoke.GetComponent<SpriteRenderer>().color.r, WorldController.instance.Smoke.GetComponent<SpriteRenderer>().color.g, WorldController.instance.Smoke.GetComponent<SpriteRenderer>().color.b, 0);
 		WorldController.instance.Smoke.transform.position = WorldController.instance.SC.m_characterGameObjectMap[this].transform.position;
+		m_world.m_smokeActive = true;
+		WorldController.instance.SM.PlaySmokeSoundAS();
 	}
 
 	public void Zoom()
 	{
 		m_world.m_powerUpCountingUp = true;
 		m_world.SwitchSniperCameraMode ( 2 );
+		WorldController.instance.SM.PlayZoomInAS();
 	}
 
 	public void Alarm ()
 	{
+		WorldController.instance.SM.PlayPartyMusicAS();
 		m_world.m_powerUpCountingUp = true;
 		m_world.m_partyTime = true;
 		foreach ( Character c in m_world.m_allCharacters.ToArray() )
@@ -486,6 +579,9 @@ public class Character {
 
 	public void InfectionBombActivated ()
 	{
+
+		WorldController.instance.SM.PlayBombAS();
+
 		int width = 60;
 		int height = 60;
 
@@ -511,8 +607,7 @@ public class Character {
 
 			if ( bombHitThisCharacter )
 			{
-				c.isInfected = true;
-				WorldController.instance.SC.ChangeCharacterSprite(c);
+				c.isTurning = true;
 			}
 		}
 	}
@@ -526,9 +621,13 @@ public class Character {
 		}
 
 		m_world.m_partyTime = false;
-		WorldController.instance.m_smallCrosshair.SetActive(false);
-		WorldController.instance.Smoke.SetActive ( false );
-		m_world.SwitchSniperCameraMode ( 1 );
+		WorldController.instance.m_smallCrosshair.SetActive ( false );
+		m_world.m_smokeActive = false;//WorldController.instance.Smoke.SetActive ( false );
+		if ( m_world.m_SniperCam )
+		{
+			m_world.SwitchSniperCameraMode ( 1 );
+			WorldController.instance.SM.PlayZoomOutAS();
+		}
 	}
 
 	public void RegisterOnCreatedCallback( Action<Character> _callbackFunc)

@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
      <Compile Include="Assets\Scripts\Controllers\InputController.cs" />
+     <Compile Include="Assets\Scripts\Controllers\SoundManager.cs" />
      <Compile Include="Assets\Scripts\Controllers\SpriteController.cs" />
      <Compile Include="Assets\Scripts\Controllers\UIController.cs" />
      <Compile Include="Assets\Scripts\Controllers\WorldController.cs" />
